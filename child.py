@@ -1,23 +1,46 @@
-import os, keep_alive, requests, time, json
+import os
+import shutil
+import sys
+import time
+import random
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
-#https://dev-nakama.winterpixel.io/v2/rpc/collect_timed_bonus
+from_dir = "C:"
 
-username = os.environ['username']
-password = os.environ['password']
+class FileEventHandler(FileSystemEventHandler):
+     def on_created(self, event):
+          print(f"Created {event.src_path}")
+     def on_deleted(self, event):
+          print(f"Deleted {event.src_path}")
+     def on_modified(self, event):
+          print(f"Modified {event.src_path}")
+     def on_moved(self, event):
+          print(f"Moved {event.src_path}")
+     
 
-def auto_claim():
-  while True:
-    response = requests.post("https://dev-nakama.winterpixel.io/v2/account/authenticate/email?create=false", data=json.dumps({"email":username,"password":password,"vars":{"client_version":"99999"}}), headers={"authorization": "Basic OTAyaXViZGFmOWgyZTlocXBldzBmYjlhZWIzOTo="})
+observer = Observer()
+observer.schedule(FileEventHandler(), from_dir, recursive=True)
+observer.start()
 
-    token = json.loads(response.content)['token']
-    payload = '"{}"'
-    
-    response = requests.post("https://dev-nakama.winterpixel.io/v2/rpc/collect_timed_bonus", headers={"authorization": f"Bearer {token}"}, data=payload.encode('utf-8'))
+try:
+     while True:
+          time.sleep(2)
+          print("Running")
+except KeyboardInterrupt:
+     print("Ended Observer")
+     observer.stop()
 
-    print(json.loads(response.content))
 
-    time.sleep(1801)
-    
 
-keep_alive.keep_alive()
-auto_claim()
+# imageFolderPath = "C:\\Users\\aryan\\Downloads\\Documents"
+# takeImagesFromPath = "C:\\Users\\aryan\\Downloads"
+# extensions = [".pdf", '.docx', '.doc', '.txt']
+
+# for file in os.listdir(takeImagesFromPath):
+#      if not os.path.isdir(file):
+#           fileName = os.path.splitext(file)[0]
+#           fileExtension = os.path.splitext(file)[1]
+#           fileNameAndExtension = fileName + fileExtension
+#           if fileExtension in extensions:
+#                shutil.move(takeImagesFromPath + "\\" + fileNameAndExtension, imageFolderPath)
